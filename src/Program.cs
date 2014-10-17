@@ -14,7 +14,7 @@ namespace RemoteHueDemo
   class Program
   {
     private static string _remoteApiBase = "https://www.meethue.com/api/";
-    private static string _token = "YOUR ACCESS TOKEN"; //Get it from https://www.meethue.com/en-us/user/apps --> url of De-activate link containt access token.
+		private static string _token = "YOUR ACCESS TOKEN"; //Get it from https://www.meethue.com/en-us/user/apps --> url of De-activate link containt access token.
 
     public static Uri RemoteMessageUrl
     {
@@ -23,11 +23,30 @@ namespace RemoteHueDemo
         return new Uri(string.Format("{0}{1}?token={2}", _remoteApiBase, "sendmessage", HttpUtility.UrlEncode(_token)));
       }
     }
+		public static Uri RemoteStatusUrl
+		{
+			get
+			{
+				return new Uri(string.Format("{0}{1}?token={2}", _remoteApiBase, "getbridge", HttpUtility.UrlEncode(_token)));
+			}
+		}
 
     static void Main(string[] args)
     {
-      EnableLight1Demo();
+			GetBridgeInfo();
+      EnableLight1Demo();			
     }
+
+		private static void GetBridgeInfo()
+		{			
+			GetBridgeInfoRemote().Wait();
+		}
+
+		private static async Task GetBridgeInfoRemote()
+		{
+			HttpClient client = new HttpClient();
+			var result = await client.GetStringAsync(RemoteStatusUrl).ConfigureAwait(false);
+		} 
 
     private static void EnableLight1Demo()
     {
@@ -47,6 +66,8 @@ namespace RemoteHueDemo
       SendMessage(command).Wait();
     }
 
+		
+
     private static async Task SendMessage(dynamic command)
     {
       string jsonMessage = JsonConvert.SerializeObject(command);
@@ -60,9 +81,5 @@ namespace RemoteHueDemo
       //failure could be like: "{\"code\":109,\"message\":\"I don\\u0027t know that token.\",\"result\":\"error\"}"
       //or "{\"code\":113,\"message\":\"Invalid JSON.\",\"result\":\"error\"}"
     }
-
-
-
-
   }
 }
